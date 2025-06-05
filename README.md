@@ -14,6 +14,8 @@ Control MIDI piano chords in real-time using hand gestures captured from your we
 
 ---
 
+> **Download the [official compiled release](https://github.com/Pramzie/Air-Piano/releases) from the Releases section on the right sidebar.**
+
 ## 🚀 Getting Started
 
 ### 1. Clone the Repository
