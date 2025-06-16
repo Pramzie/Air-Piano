@@ -2,12 +2,25 @@ import cv2
 import threading
 import pygame.midi
 import time
-from cvzone.HandTrackingModule import HandDetector
+from cvzone.HandTrackingModule import HandDetector #type: ignore
 
 # 🎹 Initialize Pygame MIDI
 pygame.midi.init()
 player = pygame.midi.Output(0)
 player.set_instrument(0)  # 0 = Acoustic Grand Piano
+
+# 🎼 MIDI Instrument List (use General MIDI instrument numbers)
+instruments = [
+    (0, "Acoustic Grand Piano"),
+    (24, "Nylon Guitar"),
+    (40, "Violin"),
+    (56, "Trumpet"),
+    (73, "Flute"),
+    (118, "Synth Drum")
+]
+instrument_index = 0
+current_instrument = instruments[instrument_index]
+player.set_instrument(current_instrument[0])
 
 # 🎐 Initialize Hand Detector
 cap = cv2.VideoCapture(0)
@@ -48,6 +61,10 @@ def stop_chord_after_delay(chord_notes):
     for note in chord_notes:
         player.note_off(note, 127)  # Stop playing
 
+# Instrument name display timeout
+INSTRUMENT_DISPLAY_TIME = 3.0
+last_instrument_change = time.time() - INSTRUMENT_DISPLAY_TIME  # Init to hide immediately
+
 while True:
     success, img = cap.read()
     if not success:
@@ -76,9 +93,21 @@ while True:
                 threading.Thread(target=stop_chord_after_delay, args=(chords[hand][finger],), daemon=True).start()
         prev_states = {hand: {finger: 0 for finger in chords[hand]} for hand in chords}
 
+    # Show instrument within display timeout
+    if time.time() - last_instrument_change < INSTRUMENT_DISPLAY_TIME:
+        cv2.putText(img, f"Instrument: {current_instrument[1]}", (10, 30),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+
     cv2.imshow("Hand Tracking MIDI Chords", img)
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    key = cv2.waitKey(1) & 0xFF
+    if key == ord(' '):  # Spacebar to cycle instrument
+        instrument_index = (instrument_index + 1) % len(instruments)
+        current_instrument = instruments[instrument_index]
+        player.set_instrument(current_instrument[0])
+        last_instrument_change = time.time()
+        print(f"🎹 Switched to: {current_instrument[1]}")
+    elif key == ord('q'):
         break
 
 cap.release()
