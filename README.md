@@ -105,4 +105,6 @@ Both hands use the same chord mapping.
 
 This project is open-source and available under the [MIT License](LICENSE).
 
+
+Code for Offcampus by AWS: 99RNYA
 ---
